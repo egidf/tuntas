@@ -1,0 +1,88 @@
+
+Berikut adalah panduan langkah demi langkah untuk melakukan instalasi dan menjalankan aplikasi TUNTAS pada sistem operasi Ubuntu (Linux) dan Windows 11.
+Sebelum memulai, pastikan Anda telah menyusun dokumen-dokumen kode Anda ke dalam struktur folder berikut agar aplikasi dapat mendeteksi halaman web dengan benar:
+📁 Struktur Direktori Proyek
+code
+Text
+tuntas-app/
+│
+├── app.py
+│
+└── templates/
+    ├── login.html
+    ├── admin.html
+    └── guru.html
+
+A. Petunjuk Instalasi di Ubuntu
+Panduan ini ditujukan untuk Ubuntu (versi 20.04 LTS, 22.04 LTS, atau 24.04 LTS).
+Langkah 1: Perbarui Sistem dan Pasang Python
+Buka Terminal Anda dan jalankan perintah berikut untuk memperbarui indeks paket serta menginstal Python, pengelola paket (pip), dan modul lingkungan virtual (venv):
+code
+Bash
+sudo apt update
+sudo apt install python3 python3-pip python3-venv -y
+Langkah 2: Buat Direktori Proyek dan Masuk ke Dalamnya
+code
+Bash
+mkdir tuntas-app
+cd tuntas-app
+(Salin file app.py ke folder ini, dan letakkan file HTML ke dalam subfolder bernama templates).
+Langkah 3: Buat dan Aktifkan Virtual Environment
+Virtual environment berguna agar pustaka (library) aplikasi tidak bercampur dengan pustaka bawaan sistem operasi.
+code
+Bash
+python3 -m venv venv
+source venv/bin/activate
+Catatan: Jika virtual environment aktif, akan muncul tanda (venv) di sebelah kiri baris perintah terminal Anda.
+Langkah 4: Instal Pustaka Pendukung (Dependencies)
+Instal pustaka-pustaka Python yang dibutuhkan oleh aplikasi ini melalui pip:
+code
+Bash
+pip install Flask flask-cors pandas openpyxl
+Langkah 5: Jalankan Aplikasi
+Jalankan aplikasi dengan memanggil interpreter Python:
+code
+Bash
+python3 app.py
+Aplikasi akan aktif secara default di alamat http://127.0.0.1:5000. Anda dapat membuka peramban (browser) dan mengakses alamat tersebut.
+(Opsional) Jika Anda ingin menonaktifkan lingkungan virtual setelah selesai menggunakan aplikasi, cukup ketik:
+code
+Bash
+deactivate
+
+B. Petunjuk Instalasi di Windows 11
+Langkah 1: Unduh dan Instal Python
+Buka situs resmi Python di python.org/downloads dan unduh installer Python versi stabil terbaru (misalnya versi 3.10 atau yang lebih baru).
+Jalankan berkas .exe yang telah diunduh.
+Penting: Pastikan Anda mencentang opsi "Add Python to PATH" di bagian bawah jendela installer sebelum menekan tombol Install Now.
+Langkah 2: Buka Terminal (Command Prompt atau PowerShell)
+Tekan tombol Windows + S, cari Command Prompt (atau PowerShell), lalu buka aplikasi tersebut.
+Langkah 3: Buat Folder Proyek dan Masuk ke Dalamnya
+code
+Cmd
+mkdir tuntas-app
+cd tuntas-app
+(Pindahkan file app.py ke dalam folder tuntas-app ini, serta buat folder baru bernama templates untuk menyimpan file login.html, admin.html, dan guru.html).
+Langkah 4: Buat dan Aktifkan Virtual Environment
+code
+Cmd
+python -m venv venv
+venv\Scripts\activate
+Tanda (venv) akan muncul di bagian kiri Command Prompt sebagai tanda lingkungan virtual telah aktif.
+Langkah 5: Instal Pustaka Pendukung
+code
+Cmd
+pip install Flask flask-cors pandas openpyxl
+Langkah 6: Jalankan Aplikasi
+code
+Cmd
+python app.py
+Aplikasi kini berjalan di komputer lokal Anda. Buka peramban web seperti Google Chrome atau Microsoft Edge, lalu buka alamat:
+code
+Text
+http://127.0.0.1:5000
+🔑 Informasi Login Default (Akun Administrator)
+Saat aplikasi pertama kali dijalankan, sistem secara otomatis akan membuat basis data SQLite bernama school_db.sqlite dan menyiapkan satu akun administrator awal. Anda dapat masuk menggunakan kredensial berikut:
+Username: admin
+Password: admin123
+Setelah masuk ke akun admin, Anda dapat mulai mendaftarkan data kelas, data siswa, akun guru pengampu, serta melakukan pemetaan (plotting) jadwal mengajar.

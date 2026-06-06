@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Grade Adjuster AI - Connected</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    
+    <style>
+        :root { --primary: #3b82f6; --secondary: #64748b; --bg: #f8fafc; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg); padding: 20px; color: #1e293b; line-height: 1.6; }
+        
+        .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); padding: 30px; }
+        
+        .header { text-align: center; border-bottom: 3px solid var(--primary); padding-bottom: 20px; margin-bottom: 25px; position: relative; }
+        h1 { color: var(--primary); font-size: 28px; }
+        .subtitle { color: var(--secondary); font-size: 14px; }
+        .badge-profile { display:inline-block;background:#3b82f6;color:white;padding:5px 12px;border-radius:20px;font-size:12px;margin-top:10px;}
+
+        .school-identity { background: linear-gradient(135deg, #3b82f6, #2563eb); padding: 20px; border-radius: 12px; margin-bottom: 25px; color: white; }
+        .school-identity h2 { margin: 0 0 10px 0; font-size: 20px; text-align: center; }
+        .identity-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; font-size: 13px; }
+        .identity-item { background: rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; text-align: center; }
+        .identity-item strong { display: block; font-size: 14px;}
+
+        .config-section { background: #eff6ff; padding: 20px; border-radius: 12px; border: 1px solid #bfdbfe; margin-bottom: 25px; }
+        
+        input[type="number"] { width: 100%; padding: 14px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px; box-sizing: border-box; transition: all 0.3s; }
+        input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+        
+        .btn-main { background: linear-gradient(135deg, var(--primary), #2563eb); color: white; border: none; padding: 16px; font-size: 16px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 15px; font-weight: bold; transition: all 0.3s; }
+        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(59,130,246,0.3); }
+
+        .upload-area { border: 2px dashed var(--primary); padding: 30px; text-align: center; border-radius: 8px; cursor: pointer; background: #f0f7ff; margin-top: 15px; transition: all 0.3s; }
+        .upload-area:hover { background: #dbeafe; }
+        input[type="file"] { display: none; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; padding-bottom: 20px; border-bottom: 2px dashed #e2e8f0; }
+        .stat-card { background: #fffbeb; padding: 15px; text-align: center; border-radius: 10px; }
+        .stat-value { font-size: 18px; font-weight: bold; color: var(--primary); }
+        
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 25px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .students-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .students-table th, .students-table td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+        .students-table th { background: #f8fafc; font-weight: bold; position: sticky; top: 0; }
+        
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; color: white; display: inline-block; }
+        .bg-green { background: #16a34a; }
+        .bg-orange { background: #d97706; }
+        .bg-red { background: #dc2626; }
+
+        /* HANDPHONE VIEW ADAPTABILITY */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { padding: 15px; }
+            h1 { font-size: 22px; }
+            .subtitle { font-size: 12px; }
+            .identity-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🤖 Smart Grade Adjuster AI</h1>
+        <p class="subtitle">Connected Mode - Terhubung dengan Server Sekolah (Backend Python Flask)</p>
+        <div id="profileBadge" class="badge-profile"></div>
+    </div>
+
+    <div class="school-identity">
+        <h2>🏫 Identitas Sekolah</h2>
+        <div class="identity-grid">
+            <div class="identity-item"><strong>Nama Sekolah:</strong> <span id="displaySchoolName">SIAKAD SMA</span></div>
+            <div class="identity-item"><strong>Kelas:</strong> <span id="displayClass">Pilih Kelas di Dropdown</span></div>
+            <div class="identity-item"><strong>Mata Pelajaran:</strong> <span id="displayMapel">Pilih Mapel di Dropdown</span></div>
+            <div class="identity-item"><strong>Tahun Pelajaran:</strong> <span id="displayTahunPelajaran">2024/2025</span></div>
+        </div>
+    </div>
+
+    <div class="config-section">
+        <h3 style="margin-bottom: 15px; color: var(--primary);">⚙️ Pengaturan Kelas</h3>
+        
+        <div class="form-group" style="margin-bottom: 10px;">
+            <label for="classIdSelect">ID Kelas (Database)</label>
+            <input type="number" id="classIdSelect" value="1" min="1">
+        </div>
+        <div class="form-group" style="margin-bottom: 10px;">
+            <label for="mapelIdSelect">ID Mapel (Database)</label>
+            <input type="number" id="mapelIdSelect" value="1" min="1">
+        </div>
+        <div class="form-group" style="margin-bottom: 10px;">
+            <label for="kkm">Nilai KKM (Minimum)</label>
+            <input type="number" id="kkm" value="75" min="0" max="100">
+        </div>
+        <div class="form-group">
+            <label for="maxLimit">Nilai Maksimal Kelas</label>
+            <input type="number" id="maxLimit" value="98" min="0" max="100">
+        </div>
+    </div>
+
+    <div class="config-section">
+        <h3 style="margin-bottom: 15px; color: #d97706;">📊 Import Data dari Excel (.xlsx)</h3>
+        
+        <div class="upload-area" onclick="document.getElementById('excelFile').click()">
+            📁 Klik atau Tarik File Excel<br>
+            <small id="fileNameDisplay" style="font-size: 11px; color: #64748b;">Format: Nama | Nilai1 | Nilai2 ...</small>
+        </div>
+        <input type="file" id="excelFile" accept=".xlsx, .xls" onchange="handleFileSelect(this)">
+        
+        <button class="btn-main" onclick="uploadExcel()">📥 Proses Upload Excel ke Database</button>
+    </div>
+
+    <div id="resultArea" style="display: none;">
+        <h3 style="margin-top:25px; margin-bottom:15px; color: var(--primary);">📊 Hasil Laporan AI</h3>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalStudents">0</div>
+                <div style="font-size: 12px; color: #64748b;">Total Siswa Diproses</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: #10b981;" id="avgNew">-</div>
+                <div style="font-size: 12px; color: #64748b;">Rata-rata Baru (AI)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: #f59e0b;" id="minNew">-</div>
+                <div style="font-size: 12px; color: #64748b;">Nilai Terendah</div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="students-table" id="tableExportTarget">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Siswa</th>
+                        <th>Rata2 Asli</th>
+                        <th>Rata2 Baru (AI)</th>
+                        <th>Status KKM</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button class="btn-main" onclick="exportToCSV()" style="background-color: #10b981; padding: 14px; font-weight:bold;">📥 Export Hasil ke CSV</button>
+        </div>
+    </div>
+
+    <div id="loadingOverlay" style="display:none; position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.9);z-index:9999;text-align:center;padding-top:30%;">
+        <div style="font-size:48px; margin-bottom: 20px;">⏳</div>
+        <p id="loadingText" style="color:#64748b; font-weight:bold; max-width: 500px; margin: 0 auto;">Memproses...</p>
+    </div>
+</div>
+
+<script>
+const API_URL = 'http://127.0.0.1:5000/api'; 
+
+async function uploadExcel() {
+    const fileInput = document.getElementById('excelFile');
+    const classId = document.getElementById('classIdSelect').value;
+    const mapelId = document.getElementById('mapelIdSelect').value;
+    
+    if (fileInput.files.length === 0) {
+        alert("Mohon pilih file Excel terlebih dahulu!");
+        return;
+    }
+
+    showLoading("Mengunggah data Excel ke Server...");
+
+    const file = fileInput.files[0];
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('class_id', classId);
+    formData.append('mapel_id', mapelId);
+    formData.append('kkm', document.getElementById('kkm').value);
+    formData.append('maxLimit', document.getElementById('maxLimit').value);
+
+    try {
+        const response = await fetch(`${API_URL}/guru/upload`, {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.error || `Gagal menghubungi Server. Status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        hideLoading();
+        alert(`✅ Sukses! ${result.message}`);
+        
+        loadDataFromDatabase();
+        
+    } catch (error) {
+        console.error(error);
+        hideLoading();
+        alert("❌ Error: " + error.message);
+    }
+}
+
+function handleFileSelect(input) {
+    const file = input.files[0];
+    if(file) {
+        document.getElementById('fileNameDisplay').innerText = `File: ${file.name}`;
+    }
+}
+
+async function loadDataFromDatabase() {
+    const classId = document.getElementById('classIdSelect').value;
+    const mapelId = document.getElementById('mapelIdSelect').value;
+    showLoading("Memuat data siswa dari database...");
+    
+    try {
+        const response = await fetch(`${API_URL}/guru/rekap?class_id=${classId}&mapel_id=${mapelId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        hideLoading();
+        renderTable(data); 
+    } catch (error) {
+        console.error("[LOAD DATA ERROR]", error);
+        hideLoading();
+        alert("⚠️ Gagal memuat data dari database.");
+    }
+}
+
+function renderTable(data) {
+    const tbody = document.getElementById('tableBody');
+    const resultArea = document.getElementById('resultArea');
+    
+    if (!data.length) {
+        resultArea.style.display = 'none';
+        alert("Tidak ada data ditemukan untuk kombinasi kelas/mapel ini.");
+        return;
+    }
+
+    const kkm = parseFloat(document.getElementById('kkm').value) || 75;
+    let htmlContent = '';
+    
+    data.forEach((student, index) => {
+        const originalAvg = parseFloat(student.nilai_asli) || 0;
+        const aiAdjusted = parseFloat(student.nilai_ai) || 0;
+        
+        const isPass = aiAdjusted >= kkm;
+        const badgeText = isPass ? 'Lulus ✅' : 'Perlu Perhatian ⚠️';
+        const badgeClass = isPass ? 'bg-green' : 'bg-red';
+
+        htmlContent += `
+            <tr>
+                <td>${index + 1}</td>
+                <td><strong>${student.nama_siswa}</strong></td>
+                <td style="text-align:right;">${originalAvg.toFixed(2)}</td>
+                <td style="text-align:right;"><span class="${badgeClass} badge">${aiAdjusted.toFixed(2)}</span></td>
+                <td><span class="${badgeClass} badge">${badgeText}</span></td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = htmlContent;
+    resultArea.style.display = 'block';
+    
+    document.getElementById('totalStudents').innerText = data.length.toLocaleString();
+    
+    const newAverages = data.map(s => s.nilai_ai).reduce((a, b) => a + b, 0);
+    const averageNew = (data.length > 0) ? (newAverages / data.length).toFixed(2) : '-';
+    document.getElementById('avgNew').innerText = averageNew;
+    
+    const minAiVal = Math.min(...data.map(s => s.nilai_ai));
+    document.getElementById('minNew').innerText = minAiVal.toFixed(2);
+}
+
+async function exportToCSV() {
+    const tbody = document.getElementById('tableBody');
+    const rows = [];
+    
+    rows.push(['No', 'Nama Siswa', 'Rata2 Asli', 'Rata2 Baru AI']);
+
+    for (const row of tbody.rows) {
+        const cells = row.getElementsByTagName('td');
+        if (cells.length >= 4) {
+            rows.push([
+                cells[0].innerText,
+                cells[1].innerText,
+                cells[2].innerText,
+                cells[3].innerText
+            ]);
+        }
+    }
+
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
+    rows.forEach(row => {
+        csvContent += row.join(',') + "\r\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Laporan_AI_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function showLoading(msg) {
+    const overlay = document.getElementById('loadingOverlay');
+    const text = document.getElementById('loadingText');
+    text.innerText = msg;
+    overlay.style.display = 'block';
+}
+
+function hideLoading() {
+    document.getElementById('loadingOverlay').style.display = 'none';
+}
+</script>
+</body>
+</html>
